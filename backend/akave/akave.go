@@ -26,34 +26,7 @@ var (
 )
 
 
-var configOptions = []fs.Option{
-    {
-        Name:     "endpoint",
-        Help:     "API endpoint for Akave storage.",
-        Required: true,
-    },
-    {
-        Name:     "max_concurrency",
-        Help:     "Maximum number of concurrent operations.",
-        Default:  4,
-    },
-    {
-        Name:     "block_part_size",
-        Help:     "Size of block parts in bytes.",
-        Default:  1048576, // 1 MiB
-    },
-	// this should be secure, am I handling it(verify with different backend providers)
-    {
-        Name:     "encryption_key",
-        Help:     "Encryption key (optional).",
-        IsPassword: true,
-    },
-    // Add other options as needed
-}
 
-
-
-// TODO: go vover it and see if it make sense
 // akaveCommandHelp provides detailed help for the Akave backend.
 var akaveCommandHelp = []fs.CommandHelp{
    {
@@ -80,7 +53,7 @@ rclone copy /path/to/local/file akave:bucketname
 
 Ensure that you have the necessary permissions and that the endpoint URL is correct.`,
        Opts: map[string]string{
-           "endpoint":         "API endpoint for Akave storage. E.g., \"https://api.akave.ai\".",
+           "node_url":         "API endpoint for Akave storage. E.g., \"https://api.akave.ai\".",
            "max_concurrency": "Maximum number of concurrent operations. Default is 4.",
            "block_part_size": "Size of block parts in bytes. Default is 1048576 (1 MiB).",
            "encryption_key":  "Encryption key for securing your data (optional). Must be 32 bytes long.",
@@ -98,8 +71,8 @@ func init() {
         CommandHelp: akaveCommandHelp,
         Options: []fs.Option{
             {
-                Name:     "endpoint",
-                Help:     "API endpoint for Akave storage.\n\nE.g., \"https://api.akave.ai\".",
+                Name:     "node_url",
+                Help:     "API ulr for Akave storage.\n\nE.g., \"https://api.akave.ai\".",
                 Required: true,
             },
             {
@@ -190,9 +163,9 @@ func (f *Fs) String() string {
 // NewFs constructs an Fs from the path, bucket:path
 func NewFs(ctx context.Context,name, root string, m configmap.Mapper) (fs.Fs, error) {
     // Retrieve endpoint - this one is required, so return an error if empty
-    endpoint, _ := m.Get("endpoint")
-    if endpoint == "" {
-        return nil, errors.New("endpoint is required")
+    node_url, _ := m.Get("node_url")
+    if node_url == "" {
+        return nil, errors.New("node_url is required")
     }
 
     // Optional max concurrency, default to 4 if unset or invalid
@@ -212,7 +185,7 @@ func NewFs(ctx context.Context,name, root string, m configmap.Mapper) (fs.Fs, er
     // Optional encryption key
     encryptionKeyStr, _ := m.Get("encryption_key") 
     // Initialize the SDK with the configuration
-    akaveSDK, err := sdk.New(endpoint, maxConcurrency, blockPartSize, false, sdk.WithPrivateKey(encryptionKeyStr))
+    akaveSDK, err := sdk.New(node_url, maxConcurrency, blockPartSize, false, sdk.WithPrivateKey(encryptionKeyStr))
     if err != nil {
         return nil, err
     }
