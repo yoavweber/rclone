@@ -56,7 +56,7 @@ Ensure that you have the necessary permissions and that the endpoint URL is corr
            "node_url":         "API endpoint for Akave storage. E.g., \"https://api.akave.ai\".",
            "max_concurrency": "Maximum number of concurrent operations. Default is 4.",
            "block_part_size": "Size of block parts in bytes. Default is 1048576 (1 MiB).",
-           "encryption_key":  "Encryption key for securing your data (optional). Must be 32 bytes long.",
+           "private_key":  "Private key for securing your data (optional). Must be 32 bytes long.",
        },
    },
 }
@@ -91,7 +91,7 @@ Must be a positive integer. Default is 1048576 (1 MiB).`,
                 Advanced: true,
             },
             {
-                Name:      "encryption_key",
+                Name:      "private_key",
                 Help:      "Encryption key for securing your data (optional). Must be 32 bytes long.",
                 IsPassword: true,
                 Advanced:  true,
@@ -183,9 +183,9 @@ func NewFs(ctx context.Context,name, root string, m configmap.Mapper) (fs.Fs, er
     }
 
     // Optional encryption key
-    encryptionKeyStr, _ := m.Get("encryption_key") 
+    privateKeyStr, _ := m.Get("private_key") 
     // Initialize the SDK with the configuration
-    akaveSDK, err := sdk.New(node_url, maxConcurrency, blockPartSize, false, sdk.WithPrivateKey(encryptionKeyStr))
+    akaveSDK, err := sdk.New(node_url, maxConcurrency, blockPartSize, false, sdk.WithPrivateKey(privateKeyStr))
     if err != nil {
         return nil, err
     }
